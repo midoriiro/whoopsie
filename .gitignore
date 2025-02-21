@@ -1,0 +1,7 @@
+# rust
+target/
+Cargo.lock
+.cargo/
+.DS_Store
+recorded.wav
+rls*.log

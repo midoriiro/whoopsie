@@ -1,0 +1,21 @@
+[package]
+name = "whoopsie"
+edition = "2021"
+authors = ["Alexis Bekhdadi <alexis@bekhdadi.com>"]
+license = "Apache-2.0"
+description = "An implementation of backoff strategies combined with a circuit breaker for error management and system resilience."
+repository = "https://github.com/midoriiro/whoopsie.git"
+documentation = ""
+keywords = ["backoff", "circuit", "breaker"]
+version = "0.1.0"
+
+[dependencies]
+tokio = { version = "1.43", features = ["full"], optional = true }
+
+[dev-dependencies]
+rstest = "0.24"
+async-std = { version = "1.13", features = ["attributes"] }
+
+[features]
+default = []
+async = ["dep:tokio"]
