@@ -1,5 +1,6 @@
 use crate::backoff::{Backoff, WaitStrategy};
 use crate::error::Error;
+use std::fmt::{Display, Formatter};
 use std::time::Duration;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -98,16 +99,17 @@ impl CircuitBreaker {
         E: std::error::Error + From<Error>,
     {
         if self.state == State::Open {
-            return Err(Error {
+            let error = Error {
                 description: "Circuit breaker is open".to_string(),
-            }.into());
+            };
+            return Err(error.into());
         }
         self.reset();
         self.state = State::Closed;
-        let mut last_error = None;
+        let mut last_error: Option<E> = None;
         while self.failed_attempts < self.attempts {
             if self.state == State::HalfOpen {
-                match operation() {
+                match self.backoff.retry(operation) {
                     Ok(value) => {
                         self.state = State::Closed;
                         return Ok(value);
@@ -120,7 +122,7 @@ impl CircuitBreaker {
                     }
                 }
             }
-            while self.failure_count < self.failure_threshold {
+            while self.failure_count <= self.failure_threshold - 1 {
                 let error = match self.backoff.retry(operation) {
                     Ok(value) => {
                         self.state = State::Closed;
@@ -135,5 +137,65 @@ impl CircuitBreaker {
             self.wait_strategy.synchronous_wait(&self.reset_timeout);
         }
         Err(last_error.unwrap())
+    }
+
+    pub async fn retry_async<F, O, E>(&mut self, operation: &mut F) -> Result<O, E>
+    where
+        F: FnMut() -> Result<O, E>,
+        E: std::error::Error + From<Error>,
+    {
+        if self.state == State::Open {
+            let error = Error {
+                description: "Circuit breaker is open".to_string(),
+            };
+            return Err(error.into());
+        }
+        self.reset();
+        self.state = State::Closed;
+        let mut last_error: Option<E> = None;
+        while self.failed_attempts < self.attempts {
+            if self.state == State::HalfOpen {
+                match self.backoff.retry_async(operation).await {
+                    Ok(value) => {
+                        self.state = State::Closed;
+                        return Ok(value);
+                    }
+                    Err(error) => {
+                        self.state = State::Closed;
+                        self.failed_attempts += 1;
+                        self.wait_strategy.synchronous_wait(&self.reset_timeout);
+                        last_error = Some(error);
+                    }
+                }
+            }
+            while self.failure_count <= self.failure_threshold - 1 {
+                let error = match self.backoff.retry_async(operation).await {
+                    Ok(value) => {
+                        self.state = State::Closed;
+                        return Ok(value)
+                    },
+                    Err(value) => value,
+                };
+                last_error = Some(error);
+                self.failure_count += 1;
+            }
+            self.state = State::HalfOpen;
+            self.wait_strategy.synchronous_wait(&self.reset_timeout);
+        }
+        Err(last_error.unwrap())
+    }
+}
+
+impl Display for CircuitBreaker {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Attempts: {}/{}, Failures: {}/{}, State: {:?}",
+            self.failed_attempts,
+            self.attempts,
+            self.failure_count,
+            self.failure_threshold,
+            self.state
+        )
     }
 }

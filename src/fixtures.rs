@@ -1,16 +1,16 @@
-use std::sync::Arc;
-use std::time::Duration;
-use rstest::fixture;
-use tokio::runtime::Runtime;
-use crate::backoff::BackoffBuilder;
+use crate::backoff::{AsynchronousExecutor, BackoffBuilder};
 use crate::circuit_breaker::{CircuitBreaker, CircuitBreakerBuilder};
 use crate::error::Error;
+use rstest::fixture;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::runtime::Runtime;
 
 pub const TIME: Duration = Duration::from_millis(100);
 
 #[fixture]
-pub fn async_runtime() -> Arc<Runtime> {
-    Arc::new(Runtime::new().unwrap())
+pub fn async_runtime() -> Arc<AsynchronousExecutor> {
+    Arc::new(AsynchronousExecutor::Runtime(Runtime::new().unwrap()))
 }
 
 #[fixture]

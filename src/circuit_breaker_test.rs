@@ -1,6 +1,6 @@
 use crate::circuit_breaker::{CircuitBreaker, State};
 use crate::error::Error;
-use crate::fixtures::{circuit_breaker, failed_operation, success_operation, failed_operation_then_recovered_at_first_attempt, failed_operation_then_recovered_at_second_attempt};
+use crate::fixtures::{circuit_breaker, failed_operation, failed_operation_then_recovered_at_first_attempt, failed_operation_then_recovered_at_second_attempt, success_operation};
 use rstest::rstest;
 
 #[rstest]

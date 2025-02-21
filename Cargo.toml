@@ -15,7 +15,22 @@ tokio = { version = "1.43", features = ["full"], optional = true }
 [dev-dependencies]
 rstest = "0.24"
 async-std = { version = "1.13", features = ["attributes"] }
+reqwest = { version = "0.12", features = ["blocking"] }
+rand = "0.9"
 
 [features]
 default = []
 async = ["dep:tokio"]
+
+[[example]]
+name = "random_http_status"
+
+[[example]]
+name = "backoff_with_constant_time"
+
+[[example]]
+name = "backoff_with_exponential_time"
+
+[[example]]
+name = "asynchronous"
+required-features = ["async"]

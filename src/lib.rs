@@ -3,7 +3,7 @@ pub mod backoff;
 #[path = "./backoff_test.rs"]
 mod backoff_test;
 
-mod circuit_breaker;
+pub mod circuit_breaker;
 #[cfg(test)]
 #[path = "./circuit_breaker_test.rs"]
 mod circuit_breaker_test;

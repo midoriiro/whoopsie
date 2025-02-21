@@ -1,10 +1,8 @@
-use std::sync::Arc;
-use std::time::Duration;
-use rstest::{fixture, rstest};
-use tokio::runtime::Runtime;
-use crate::backoff::{Backoff, BackoffBuilder};
+use crate::backoff::{AsynchronousExecutor, Backoff, BackoffBuilder};
 use crate::error::Error;
 use crate::fixtures::{async_runtime, failed_operation, success_operation, TIME};
+use rstest::rstest;
+use std::sync::Arc;
 
 #[rstest]
 fn missing_with_time_method_in_builder() {
@@ -109,7 +107,7 @@ fn failed_with_constant_time_and_as_sync(mut failed_operation: impl FnMut() -> R
 #[rstest]
 async fn success_with_constant_time_and_as_async(
     mut success_operation: impl FnMut() -> Result<(), Error>,
-    async_runtime: Arc<Runtime>,
+    async_runtime: Arc<AsynchronousExecutor>,
 ) {
     let mut backoff = BackoffBuilder::new()
         .with_constant_time(TIME)
@@ -124,7 +122,7 @@ async fn success_with_constant_time_and_as_async(
 #[rstest]
 async fn failed_with_constant_time_and_as_async(
     mut failed_operation: impl FnMut() -> Result<(), Error>,
-    async_runtime: Arc<Runtime>,
+    async_runtime: Arc<AsynchronousExecutor>,
 ) {
     let mut backoff = BackoffBuilder::new()
         .with_constant_time(TIME)
