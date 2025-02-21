@@ -12,14 +12,10 @@ By combining backoff with a circuit breaker, **Whoopsie** allows for intelligent
 
 ## Examples
 ### Backoff with constant time
-```rust:examples/backoff_with_constant_time.rs
-```
+https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/backoff_with_constant_time.rs#L1-L40
 ### Backoff with exponential time
-```rust:examples/backoff_with_exponential_time.rs
-```
+https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/backoff_with_exponential_time.rs#L1-L36
 ### Circuit breaker
-```rust:examples/random_http_status.rs
-```
+https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/random_http_status.rs#L7-L44
 ### Asynchronous
-```rust:examples/asynchronous.rs
-```
+https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/asynchronous.rs#L11-L50
