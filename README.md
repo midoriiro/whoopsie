@@ -7,6 +7,15 @@ By combining backoff with a circuit breaker, **Whoopsie** allows for intelligent
  - Circuit Breaker: Monitors failures and, after reaching a certain threshold, prevents further ATTEMPTS to avoid overwhelming a distressed service or operation.
  - Automatic Reset: When a circuit breaker closes, the backoff counter is reset to zero, ensuring a fresh start for retries.
 
+## Install
+
+Add the following to your Cargo.toml file
+
+```
+[dependencies]
+whoopsie = "0.1"
+```
+
 ## Feature flags
  - ```async```: through tokio runtime
 
