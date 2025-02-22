@@ -1,10 +1,6 @@
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::runtime::Handle;
-#[cfg(feature = "async")]
-use tokio::runtime::Runtime;
-
 use crate::error::Error;
+use std::future::Future;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub(crate) enum TimeStrategy {
@@ -22,14 +18,8 @@ pub(crate) enum TimeStrategy {
 pub(crate) enum WaitStrategy {
     Synchronous,
     #[cfg(feature = "async")]
-    Asynchronous(Arc<AsynchronousExecutor>),
+    Asynchronous,
     SpinLoop
-}
-
-#[derive(Debug)]
-pub enum AsynchronousExecutor {
-    Runtime(Runtime),
-    Handle(Handle),
 }
 
 impl WaitStrategy {
@@ -96,8 +86,8 @@ impl BackoffBuilder {
     }
 
     #[cfg(feature = "async")]
-    pub fn as_asynchronous(&mut self, executor: Arc<AsynchronousExecutor>) -> &mut Self {
-        self.wait_strategy = Some(WaitStrategy::Asynchronous(executor));
+    pub fn as_asynchronous(&mut self) -> &mut Self {
+        self.wait_strategy = Some(WaitStrategy::Asynchronous);
         self
     }
 
@@ -161,12 +151,13 @@ impl Backoff {
     }
 
     #[cfg(feature = "async")]
-    pub async fn retry_async<F, O, E>(&mut self, operation: &mut F) -> Result<O, E>
+    pub async fn retry_async<F, O, E, R>(&mut self, operation: &mut F) -> Result<O, E>
     where
-        F: FnMut() -> Result<O, E>,
+        F: FnMut() -> R,
         E: std::error::Error,
+        R: Future<Output = Result<O, E>>,
     {
-        let error = match operation() {
+        let error = match operation().await {
             Ok(value) => return Ok(value),
             Err(value) => value
         };
@@ -210,7 +201,7 @@ impl Backoff {
                 self.wait_strategy.synchronous_wait(duration);
             }
             #[cfg(feature = "async")]
-            WaitStrategy::Asynchronous(_) => {
+            WaitStrategy::Asynchronous => {
                 panic!("Asynchronous wait not supported in synchronous context");
             }
             WaitStrategy::SpinLoop => {
@@ -222,32 +213,12 @@ impl Backoff {
     #[cfg(feature = "async")]
     async fn asynchronous_wait(&self, duration: &Duration) {
         match &self.wait_strategy {
-            WaitStrategy::Synchronous => {
-                panic!("Synchronous wait not supported in asynchronous context");
-            }
-            WaitStrategy::Asynchronous(executor) => {
+            WaitStrategy::Asynchronous => {
                 let duration = duration.clone();
                 let strategy = self.wait_strategy.clone();
-                match &**executor {
-                    AsynchronousExecutor::Runtime(runtime) => {
-                        runtime
-                            .spawn(async move {
-                                strategy.asynchronous_wait(&duration).await;
-                            })
-                            .await
-                            .unwrap();
-                    }
-                    AsynchronousExecutor::Handle(handle) => {
-                        handle
-                            .spawn(async move {
-                                strategy.asynchronous_wait(&duration).await;
-                            })
-                            .await
-                            .unwrap();
-                    }
-                }
+                strategy.asynchronous_wait(&duration).await
             }
-            WaitStrategy::SpinLoop => {
+            WaitStrategy::Synchronous | WaitStrategy::SpinLoop => {
                 panic!("Synchronous wait not supported in asynchronous context");
             }
         }

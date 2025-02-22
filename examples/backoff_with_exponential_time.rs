@@ -10,7 +10,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let mut operation = || {
         let number = rng.random_range(0..=4);

@@ -1,6 +1,7 @@
 use crate::backoff::{Backoff, WaitStrategy};
 use crate::error::Error;
 use std::fmt::{Display, Formatter};
+use std::future::Future;
 use std::time::Duration;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -117,7 +118,7 @@ impl CircuitBreaker {
                     Err(error) => {
                         self.state = State::Closed;
                         self.failed_attempts += 1;
-                        self.wait_strategy.synchronous_wait(&self.reset_timeout);
+                        self.backoff.wait_strategy.synchronous_wait(&self.reset_timeout);
                         last_error = Some(error);
                     }
                 }
@@ -134,15 +135,17 @@ impl CircuitBreaker {
                 self.failure_count += 1;
             }
             self.state = State::HalfOpen;
-            self.wait_strategy.synchronous_wait(&self.reset_timeout);
+            self.backoff.wait_strategy.synchronous_wait(&self.reset_timeout);
         }
         Err(last_error.unwrap())
     }
 
-    pub async fn retry_async<F, O, E>(&mut self, operation: &mut F) -> Result<O, E>
+    #[cfg(feature = "async")]
+    pub async fn retry_async<F, O, E, R>(&mut self, operation: &mut F) -> Result<O, E>
     where
-        F: FnMut() -> Result<O, E>,
+        F: FnMut() -> R,
         E: std::error::Error + From<Error>,
+        R: Future<Output = Result<O, E>>,
     {
         if self.state == State::Open {
             let error = Error {
@@ -163,7 +166,7 @@ impl CircuitBreaker {
                     Err(error) => {
                         self.state = State::Closed;
                         self.failed_attempts += 1;
-                        self.wait_strategy.synchronous_wait(&self.reset_timeout);
+                        self.backoff.wait_strategy.synchronous_wait(&self.reset_timeout);
                         last_error = Some(error);
                     }
                 }
@@ -180,7 +183,7 @@ impl CircuitBreaker {
                 self.failure_count += 1;
             }
             self.state = State::HalfOpen;
-            self.wait_strategy.synchronous_wait(&self.reset_timeout);
+            self.backoff.wait_strategy.synchronous_wait(&self.reset_timeout);
         }
         Err(last_error.unwrap())
     }

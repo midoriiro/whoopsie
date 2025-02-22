@@ -1,16 +1,23 @@
-use crate::backoff::{AsynchronousExecutor, BackoffBuilder};
+use crate::backoff::BackoffBuilder;
 use crate::circuit_breaker::{CircuitBreaker, CircuitBreakerBuilder};
 use crate::error::Error;
 use rstest::fixture;
-use std::sync::Arc;
+use std::future::Future;
+use std::pin::Pin;
 use std::time::Duration;
-use tokio::runtime::Runtime;
 
 pub const TIME: Duration = Duration::from_millis(100);
 
-#[fixture]
-pub fn async_runtime() -> Arc<AsynchronousExecutor> {
-    Arc::new(AsynchronousExecutor::Runtime(Runtime::new().unwrap()))
+async fn async_succeed() -> Result<(), Error> {
+    tokio::time::sleep(TIME).await;
+    Ok(())
+}
+
+async fn async_error() -> Result<(), Error> {
+    tokio::time::sleep(TIME).await;
+    Err(Error {
+        description: "Something went wrong.".to_string(),
+    })
 }
 
 #[fixture]
@@ -21,12 +28,22 @@ pub fn success_operation() -> impl FnMut() -> Result<(), Error> {
 }
 
 #[fixture]
+pub fn success_operation_async() -> impl FnMut() -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send + 'static >> {
+    || Box::pin(async_succeed())
+}
+
+#[fixture]
 pub fn failed_operation() -> impl FnMut() -> Result<(), Error> {
     || {
         Err(Error {
             description: "Something went wrong.".to_string(),
         })
     }
+}
+
+#[fixture]
+pub fn failed_operation_async() -> impl FnMut() -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send + 'static >> {
+    || Box::pin(async_error())
 }
 
 #[fixture]

@@ -1,8 +1,9 @@
-use crate::backoff::{AsynchronousExecutor, Backoff, BackoffBuilder};
+use crate::backoff::{Backoff, BackoffBuilder};
 use crate::error::Error;
-use crate::fixtures::{async_runtime, failed_operation, success_operation, TIME};
+use crate::fixtures::{failed_operation, failed_operation_async, success_operation, success_operation_async, TIME};
 use rstest::rstest;
-use std::sync::Arc;
+use std::future::Future;
+use std::pin::Pin;
 
 #[rstest]
 fn missing_with_time_method_in_builder() {
@@ -105,31 +106,31 @@ fn failed_with_constant_time_and_as_sync(mut failed_operation: impl FnMut() -> R
 }
 
 #[rstest]
+#[tokio::test]
 async fn success_with_constant_time_and_as_async(
-    mut success_operation: impl FnMut() -> Result<(), Error>,
-    async_runtime: Arc<AsynchronousExecutor>,
+    mut success_operation_async: impl FnMut() -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send + 'static>>,
 ) {
     let mut backoff = BackoffBuilder::new()
         .with_constant_time(TIME)
-        .as_asynchronous(async_runtime)
+        .as_asynchronous()
         .build()
         .unwrap();
-    let result = backoff.retry_async(&mut success_operation).await;
+    let result = backoff.retry_async(&mut success_operation_async).await;
     assert_eq!(true, result.is_ok());
 }
 
 
 #[rstest]
+#[tokio::test]
 async fn failed_with_constant_time_and_as_async(
-    mut failed_operation: impl FnMut() -> Result<(), Error>,
-    async_runtime: Arc<AsynchronousExecutor>,
+    mut failed_operation_async: impl FnMut() -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send + 'static>>,
 ) {
     let mut backoff = BackoffBuilder::new()
         .with_constant_time(TIME)
-        .as_asynchronous(async_runtime)
+        .as_asynchronous()
         .build()
         .unwrap();
-    let result = backoff.retry_async(&mut failed_operation).await;
+    let result = backoff.retry_async(&mut failed_operation_async).await;
     assert_eq!(true, result.is_err());
 }
 

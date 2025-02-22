@@ -10,7 +10,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut attempts = 0;
 
     let mut launch_rocket = || {
