@@ -17,7 +17,7 @@ whoopsie = "0.1"
 ```
 
 ## Feature flags
- - ```async```: through tokio runtime
+ - `async`: Enables asynchronous support using Tokio runtime.
 
 ## Examples
 ### Backoff with constant time
