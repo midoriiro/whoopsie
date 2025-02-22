@@ -12,10 +12,14 @@ By combining backoff with a circuit breaker, **Whoopsie** allows for intelligent
 
 ## Examples
 ### Backoff with constant time
-https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/backoff_with_constant_time.rs
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples/backoff_with_constant_time.rs) -->
+<!-- MARKDOWN-AUTO-DOCS:END -->
 ### Backoff with exponential time
-https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/backoff_with_exponential_time.rs
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples/backoff_with_exponential_time.rs) -->
+<!-- MARKDOWN-AUTO-DOCS:END -->
 ### Circuit breaker
-https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/random_http_status.rs
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples/random_http_status.rs) -->
+<!-- MARKDOWN-AUTO-DOCS:END -->
 ### Asynchronous
-https://github.com/midoriiro/whoopsie/blob/f3407a6a9d8f973140931c9693978dc1bd76c269/examples/asynchronous.rs
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples/asynchronous.rs) -->
+<!-- MARKDOWN-AUTO-DOCS:END -->
